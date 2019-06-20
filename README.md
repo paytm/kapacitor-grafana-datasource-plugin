@@ -1,7 +1,4 @@
-## Simple JSON Datasource - a generic backend datasource
-
-
-This also serves as a living example implementation of a datasource.
+## kapacitor-grafana-datasource-plugin - a generic backend datasource for kapacitor
 
 Your backend needs to implement 4 urls:
 
