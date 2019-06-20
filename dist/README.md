@@ -1,5 +1,6 @@
 ## Simple JSON Datasource - a generic backend datasource
 
+More documentation about datasource plugins can be found in the [Docs](https://github.com/grafana/grafana/blob/master/docs/sources/plugins/developing/datasources.md).
 
 This also serves as a living example implementation of a datasource.
 
@@ -15,6 +16,21 @@ Those two urls are optional:
  * `/tag-keys` should return tag keys for ad hoc filters.
  * `/tag-values` should return tag values for ad hoc filters.
 
+## Installation
+
+To install this plugin using the `grafana-cli` tool:
+```
+sudo grafana-cli plugins install grafana-simple-json-datasource
+sudo service grafana-server restart
+```
+See [here](https://grafana.com/plugins/grafana-simple-json-datasource/installation) for more
+information.
+
+### Example backend implementations
+- https://github.com/bergquist/fake-simple-json-datasource
+- https://github.com/smcquay/jsonds
+- https://github.com/ContextLogic/eventmaster
+- https://gist.github.com/linar-jether/95ff412f9d19fdf5e51293eb0c09b850 (Python/pandas backend)
 
 ### Query API
 
@@ -197,3 +213,38 @@ npm install -g yarn
 yarn install
 npm run build
 ```
+
+### Changelog
+
+1.4.0
+
+- Support for adhoc filters:
+  - added tag-keys + tag-values api
+  - added adHocFilters parameter to query body
+
+1.3.5
+- Fix for dropdowns in query editor to allow writing template variables (broke due to change in Grafana).
+
+1.3.4
+- Adds support for With Credentials (sends grafana cookies with request) when using Direct mode
+- Fix for the typeahead component for metrics dropdown (`/search` endpoint).
+
+1.3.3
+ - Adds support for basic authentication
+
+1.2.4
+ - Add support returning sets in the search endpoint
+
+1.2.3
+ - Allow nested templates in find metric query. #23
+
+1.2.2
+ - Dont execute hidden queries
+ - Template support for metrics queries
+ - Template support for annotation queries
+
+### If using Grafana 2.6
+NOTE!
+for grafana 2.6 please use [this version](https://github.com/grafana/simple-json-datasource/commit/b78720f6e00c115203d8f4c0e81ccd3c16001f94)
+
+Copy the data source you want to `/public/app/plugins/datasource/`. Then restart grafana-server. The new data source should now be available in the data source type dropdown in the Add Data Source View.
