@@ -1,4 +1,8 @@
-## kapacitor-grafana-datasource-plugin - a generic backend datasource for kapacitor
+## kapacitor-grafana-datasource-plugin - a kapacitor backend datasource plugin for grafana
+
+More documentation about datasource plugins can be found in the [Docs](https://github.com/grafana/grafana/blob/master/docs/sources/plugins/developing/datasources.md).
+
+This also serves as a living example implementation of a datasource.
 
 Your backend needs to implement 4 urls:
 
@@ -184,6 +188,10 @@ The tag values api returns:
     {'text': 'Drei!'}
 ]
 ```
+
+For latest changelogs please visit:
+https://github.com/MananArya22/kapacitor-grafana-datasource-plugin
+
 
 ### Dev setup
 

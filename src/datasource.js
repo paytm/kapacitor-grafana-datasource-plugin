@@ -2,299 +2,310 @@ import _ from "lodash";
 
 export class GenericDatasource {
 
-    constructor(instanceSettings, $q, backendSrv, templateSrv) {
-        this.type = instanceSettings.type;
-        this.url = instanceSettings.url + " ";
-        this.name = instanceSettings.name;
-        this.q = $q;
-        this.backendSrv = backendSrv;
-        this.templateSrv = templateSrv;
-        this.withCredentials = instanceSettings.withCredentials;
-        this.headers = {'Content-Type': 'application/json'};
-        if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
-            this.headers['Authorization'] = instanceSettings.basicAuth;
-        }
-        // this.lodashLocal = require("lodash");
+  constructor(instanceSettings, $q, backendSrv, templateSrv) {
+    this.type = instanceSettings.type;
+    this.url = instanceSettings.url + "/kapacitor/v1/tasks";
+    this.name = instanceSettings.name;
+    this.q = $q;
+    this.backendSrv = backendSrv;
+    this.templateSrv = templateSrv;
+    this.withCredentials = instanceSettings.withCredentials;
+    this.headers = {
+      'Content-Type': 'application/json'
+    };
+    if (typeof instanceSettings.basicAuth === 'string' && instanceSettings.basicAuth.length > 0) {
+      this.headers['Authorization'] = instanceSettings.basicAuth;
+    }
+  }
+
+  query(options) {
+    var query = this.buildQueryParameters(options);
+    query.targets = query.targets.filter(t => !t.hide);
+
+    if (query.targets.length <= 0) {
+      return this.q.when({
+        data: []
+      });
     }
 
-    query(options) {
-        var lodashLocal = require("lodash");
-        var query = this.buildQueryParameters(options);
-        query.targets = query.targets.filter(t => !t.hide);
-
-        if (query.targets.length <= 0) {
-            return this.q.when({data: []});
-        }
-
-        if (this.templateSrv.getAdhocFilters) {
-            query.adhocFilters = this.templateSrv.getAdhocFilters(this.name);
-        } else {
-            query.adhocFilters = [];
-        }
-
-        console.log("query api called");
-        console.log("The query data: " + JSON.stringify(query));
-
-        return this.doRequest({
-            url: this.url,
-            method: 'GET'
-        }).then(function (queryResult) {
-
-            console.log(JSON.stringify(queryResult));
-
-            if (queryResult == undefined || queryResult.data == undefined || queryResult.data.tasks == undefined) {
-                return {data: []};
-            }
-
-            var stringToBeSearched = ""
-            if (query != undefined && query.targets != undefined && query.targets[0] != undefined && query.targets[0].target != undefined) {
-                stringToBeSearched = lodashLocal.lowerCase(query.targets[0].target);
-            }
-
-
-            var tasks = queryResult.data.tasks;
-
-            console.log("The task data: " + JSON.stringify(tasks));
-
-            var columns = [
-                {"text": "S.No", "type": "string"},
-                {"text": "created", "type": "time"},
-                // {"text": "dbrps", "type": "string"},
-                {"text": "id", "type": "string"},
-                {"text": "last-enabled", "type": "time"},
-                {"text": "modified", "type": "time"},
-                {"text": "status", "type": "string"},
-                {"text": "type", "type": "string"}
-                // {"text": "script", "type": "string"},
-            ];
-
-            var rows = [];
-
-            var snum = 1;
-            for (var i = 0; i < tasks.length; i++) {
-                var task = tasks[i];
-
-                var toBeUsed = false;
-                if (lodashLocal.startsWith(lodashLocal.lowerCase(task.id), stringToBeSearched)) {
-                    toBeUsed = true;
-                }
-
-                var dbNames = "";
-
-                if (!toBeUsed) {
-                    var dbs = task.dbrps;
-
-                    for (var j = 0; j < lodashLocal.size(dbs); j++) {
-                        if (lodashLocal.startsWith(lodashLocal.lowerCase(dbs[j].db), stringToBeSearched)) {
-                            toBeUsed = true;
-                        }
-
-                        dbNames += dbs[j].db + "." + dbs[j].rp + ", ";
-                    }
-                }
-
-                if (toBeUsed) {
-
-                    var createdDate = new Date((task.created).substring(0,19));
-                    var modifiedDate = new Date((task.modified).substring(0,19));
-                    var lastEnabledDate = new Date((task["last-enabled"]).substring(0,19));
-
-                    console.log("Created Date: " + createdDate);
-                    var row = []
-                    row.push(parseInt(String(snum)));
-                    // row.push(createdDate.getFullYear()+"/"+(createdDate.getMonth()+1)+"/"+createdDate.getDay()+" "+createdDate.getDate());
-                    row.push(createdDate.toDateString());
-                    // row.push(dbNames);
-
-                    // var htmlId = "<html><head></head><body><iframe src=\"http://prod.chronograf.paytm.com/sources/1/tickscript/"+task.id+"\"  style=\"height:80%;width:50%\"></iframe><p>Alert ID</p></body></html>";
-                    // var htmlId = "<html><head></head><body><embed src=\"http://example.com/elements.html\"></embed><p>Alert ID</p></body></html>"
-                    // var htmlId = "<html><head></head><body><form action=\"\"><label for=\"fname\">First name:</label><br/><input type=\"text\" id=\"fname\" name=\"firstname\"><br/>Last name:<br/><input type=\"text\" name=\"lastname\"><br/><br/><input type=\"submit\" value=\"Submit\"></form></body></html>"
-                    
-                    row.push(task.id);
-                    row.push(lastEnabledDate.toDateString());
-                    row.push(modifiedDate.toDateString())
-                    row.push(task.status);
-                    row.push(task.type);
-                    // row.push(task.script);
-                    rows.push(row);
-
-                    snum++;
-                }
-            }
-
-            var tableElement = {};
-
-            tableElement["columns"] = columns;
-            tableElement["rows"] = rows;
-            tableElement["type"] = "table";
-
-            var tableElements = [];
-            tableElements.push(tableElement);
-
-            console.log(tableElements)
-            return {data: tableElements};
-        });
+    if (this.templateSrv.getAdhocFilters) {
+      query.adhocFilters = this.templateSrv.getAdhocFilters(this.name);
+    } else {
+      query.adhocFilters = [];
     }
 
-    testDatasource() {
-        return this.doRequest({
-            url: this.url,
-            method: 'GET'
-        }).then(function (response) {
-            if (response.status === 200) {
-                return {status: "success", message: "Kapacitor is reachable", title: "Success"};
-            }
-        });
-    }
+    return this.doRequest({
+      url: this.url,
+      method: 'GET'
+    }).then(function (queryResult) {
 
-    annotationQuery(options) {
-        var query = this.templateSrv.replace(options.annotation.query, {}, 'glob');
-        var annotationQuery = {
-            range: options.range,
-            annotation: {
-                name: options.annotation.name,
-                datasource: options.annotation.datasource,
-                enable: options.annotation.enable,
-                iconColor: options.annotation.iconColor,
-                query: query
-            },
-            rangeRaw: options.rangeRaw
+      if (queryResult == undefined || queryResult.data == undefined || queryResult.data.tasks == undefined || query == undefined || query.targets == undefined || query.targets[0] == undefined || query.targets[0].target == undefined) {
+        return {
+          data: []
         };
+      }
 
-        var annotationResult = [];
+      var tasks = queryResult.data.tasks;
+      var selectedDatabase = query.targets[0].target;
 
-        var today = new Date();
-        var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
-        var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
-        var dateTime = date + ' ' + time;
-
-        var annotationElement = {
-            "annotation": "Paytm Alert Manager",
-            "time": dateTime,
-            "title": "Vertical Alerts List"
-        };
-
-        annotationResult.push(annotationElement);
-        return annotationResult;
-
-    }
-
-    metricFindQuery(query) {
-        var interpolated = {
-            target: this.templateSrv.replace(query, null, 'regex')
-        };
-
-        return this.doRequest({
-            url: this.url,
-            method: 'GET'
-        }).then(this.mapToTextValue);
-    }
-
-    mapToTextValue(result) {
-        var lodashLocal = require("lodash");
-        console.log(result);
-
-        if (result == undefined || result.data == undefined || result.data.tasks == undefined) {
-            return {data: {}};
+      var columns = [{
+          "text": "S.No",
+          "type": "string"
+        },
+        {
+          "text": "created",
+          "type": "time"
+        },
+        // {"text": "dbrps", "type": "string"},
+        {
+          "text": "id",
+          "type": "string"
+        },
+        {
+          "text": "last-enabled",
+          "type": "time"
+        },
+        {
+          "text": "modified",
+          "type": "time"
+        },
+        {
+          "text": "status",
+          "type": "string"
+        },
+        {
+          "text": "type",
+          "type": "string"
         }
+        // {"text": "script", "type": "string"},
+      ];
 
-        var tasks = result.data.tasks;
-        var verticalNames = [];
+      var rows = [];
 
-        for (var i = 0; i < lodashLocal.size(tasks); i++) {
-            var task = tasks[i];
-            var words = task.id.split("_");
-            var firstWord = lodashLocal.lowerCase(words[0]);
+      var snum = 1;
+      for (var i = 0; i < tasks.length; i++) {
+        var task = tasks[i];
+        var toBeUsed = false;
 
-            if (lodashLocal.startsWith(firstWord, "chronograf")) {
-                var dbs = task.dbrps;
+        var dbs = task.dbrps;
 
-                if (dbs != undefined && lodashLocal.size(dbs) > 0) {
+        if (dbs != undefined && _.size(dbs) > 0) {
 
-                    for (var j = 0; j < lodashLocal.size(dbs); j++) {
-                        verticalNames.push(lodashLocal.lowerCase(dbs[j].db));
-                    }
-                }
-
-            } else {
-                verticalNames.push(lodashLocal.lowerCase(words[0]));
+          for (var j = 0; j < _.size(dbs); j++) {
+            if (dbs[j].db == selectedDatabase) {
+              toBeUsed = true;
             }
+          }
         }
 
-        verticalNames = lodashLocal.uniq(verticalNames);
+        if (toBeUsed) {
 
-        return lodashLocal.map(verticalNames, function (d, i) {
-            return {text: d, value: d};
-        });
+          var createdDate = new Date((task.created).substring(0, 19));
+          var modifiedDate = new Date((task.modified).substring(0, 19));
+          var lastEnabledDate = new Date((task["last-enabled"]).substring(0, 19));
 
-    }
+          var row = [];
+          row.push(parseInt(String(snum)));
+          // row.push(createdDate.getFullYear()+"/"+(createdDate.getMonth()+1)+"/"+createdDate.getDay()+" "+createdDate.getDate());
+          row.push(createdDate.toDateString());
+          // row.push(dbNames);
 
-    doRequest(options) {
-        options.withCredentials = this.withCredentials;
-        options.headers = this.headers;
+          row.push(task.id);
+          row.push(lastEnabledDate.toDateString());
+          row.push(modifiedDate.toDateString());
+          row.push(task.status);
+          row.push(task.type);
+          // row.push(task.script);
+          rows.push(row);
 
-        return this.backendSrv.datasourceRequest(options);
-    }
-
-    buildQueryParameters(options) {
-        options.targets = _.filter(options.targets, target => {
-            return target.target !== 'select metric';
-        });
-
-        var targets = _.map(options.targets, target => {
-            return {
-                target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
-                refId: target.refId,
-                hide: target.hide,
-                type: target.type || 'timeserie'
-            };
-        });
-
-        options.targets = targets;
-
-        return options;
-    }
-
-    getTagKeys(options) {
-        var tagKeys = [
-            {"text": "created", "type": "time"},
-            // {"text": "dbrps", "type": "string"},
-            {"text": "id", "type": "string"},
-            {"text": "last-enabled", "type": "time"},
-            {"text": "modified", "type": "time"},
-            {"text": "status", "type": "string"},
-            {"text": "type", "type": "string"}
-            // {"text": "script", "type": "string"},
-        ];
-
-        return tagKeys;
-
-    }
-
-    getTagValues(options) {
-        var lodashLocal = require("lodash");
-        var allTasks = this.doRequest({
-            url: this.url,
-            method: 'GET',
-        });
-
-        var tagValues = [];
-
-        if (allTasks == undefined || allTasks.data == undefined || allTasks.data.tasks == undefined || options == undefined || options.key == undefined) {
-            return tagValues;
+          snum++;
         }
 
-        var keyToBeSearched = options.key;
+      }
 
-        var tasks = result.data.tasks;
+      var tableElement = {};
 
-        for (var i = 0; i < lodashLocal.size(tasks); i++) {
-            var task = tasks[i];
-            var value = task[keyToBeSearched];
-            tagValues.push(value);
-        }
+      tableElement.columns = columns;
+      tableElement.rows = rows;
+      tableElement.type = "table";
 
-        return tagValues;
+      var tableElements = [];
+      tableElements.push(tableElement);
+
+      return {
+        data: tableElements
+      };
+
+    });
+  }
+
+  testDatasource() {
+    return this.doRequest({
+      url: this.url,
+      method: 'GET',
+    }).then(response => {
+      if (response.status === 200) {
+        return {
+          status: "success",
+          message: "Kapacitor is reachable",
+          title: "Success"
+        };
+      }
+    });
+  }
+
+  annotationQuery(options) {
+    var query = this.templateSrv.replace(options.annotation.query, {}, 'glob');
+    var annotationQuery = {
+      range: options.range,
+      annotation: {
+        name: options.annotation.name,
+        datasource: options.annotation.datasource,
+        enable: options.annotation.enable,
+        iconColor: options.annotation.iconColor,
+        query: query
+      },
+      rangeRaw: options.rangeRaw
+    };
+
+    var today = new Date();
+    var date = today.getFullYear() + '-' + (today.getMonth() + 1) + '-' + today.getDate();
+    var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+    var dateTime = date + ' ' + time;
+
+    var annotationElement = {
+      "annotation": "Kapacitor Grafana Datasource Plugin",
+      "time": dateTime,
+      "title": "Kapacitor Alerts List"
+    };
+
+    annotationResult.push(annotationElement);
+    return annotationResult;
+  }
+
+  metricFindQuery(query) {
+    return this.doRequest({
+      url: this.url,
+      method: 'GET',
+    }).then(this.mapToTextValue);
+  }
+
+  mapToTextValue(result) {
+
+    if (result == undefined || result.data == undefined || result.data.tasks == undefined) {
+      return {
+        data: {}
+      };
     }
+
+    var tasks = result.data.tasks;
+
+    let databasesSet = new Set();
+
+    for (var i = 0; i < _.size(tasks); i++) {
+      var task = tasks[i];
+      var dbs = task.dbrps;
+
+      if (dbs != undefined && _.size(dbs) > 0) {
+
+        for (let j = 0; j < _.size(dbs); j++) {
+          databasesSet.add(dbs[j].db);
+        }
+      }
+    }
+
+    var databaseList = Array.from(databasesSet);
+
+    return _.map(databaseList, function (d, i) {
+      return {
+        text: d,
+        value: d
+      };
+    });
+  }
+
+  doRequest(options) {
+    options.withCredentials = this.withCredentials;
+    options.headers = this.headers;
+
+    return this.backendSrv.datasourceRequest(options);
+  }
+
+  buildQueryParameters(options) {
+    //remove placeholder targets
+    options.targets = _.filter(options.targets, target => {
+      return target.target !== 'select database';
+    });
+
+    var targets = _.map(options.targets, target => {
+      return {
+        target: this.templateSrv.replace(target.target, options.scopedVars, 'regex'),
+        refId: target.refId,
+        hide: target.hide,
+        type: target.type || 'timeserie'
+      };
+    });
+
+    options.targets = targets;
+
+    return options;
+  }
+
+  getTagKeys(options) {
+    var tagKeys = [{
+        "text": "created",
+        "type": "time"
+      },
+      // {"text": "dbrps", "type": "string"},
+      {
+        "text": "id",
+        "type": "string"
+      },
+      {
+        "text": "last-enabled",
+        "type": "time"
+      },
+      {
+        "text": "modified",
+        "type": "time"
+      },
+      {
+        "text": "status",
+        "type": "string"
+      },
+      {
+        "text": "type",
+        "type": "string"
+      }
+      // {"text": "script", "type": "string"},
+    ];
+
+    return tagKeys;
+  }
+
+  getTagValues(options) {
+    var allTasks = this.doRequest({
+      url: this.url,
+      method: 'GET',
+    });
+
+    var tagValues = [];
+
+    if (allTasks == undefined || allTasks.data == undefined || allTasks.data.tasks == undefined || options == undefined || options.key == undefined) {
+      return tagValues;
+    }
+
+    var keyToBeSearched = options.key;
+
+    var tasks = result.data.tasks;
+
+    for (var i = 0; i < _.size(tasks); i++) {
+      var task = tasks[i];
+      var value = task[keyToBeSearched];
+      tagValues.push(value);
+    }
+
+    return tagValues;
+  }
 
 }

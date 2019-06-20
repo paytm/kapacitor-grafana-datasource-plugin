@@ -26,7 +26,7 @@ var GenericDatasourceQueryCtrl = exports.GenericDatasourceQueryCtrl = function (
     var _this = _possibleConstructorReturn(this, (GenericDatasourceQueryCtrl.__proto__ || Object.getPrototypeOf(GenericDatasourceQueryCtrl)).call(this, $scope, $injector));
 
     _this.scope = $scope;
-    _this.target.target = _this.target.target || 'select metric';
+    _this.target.target = _this.target.target || 'select database';
     _this.target.type = _this.target.type || 'timeserie';
     return _this;
   }
