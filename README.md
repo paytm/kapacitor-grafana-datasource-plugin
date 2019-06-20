@@ -1,0 +1,2 @@
+# kapacitor-grafana-datasource-plugin
+
