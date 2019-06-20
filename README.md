@@ -2,6 +2,8 @@
 
 More documentation about datasource plugins can be found in the [Docs](https://github.com/grafana/grafana/blob/master/docs/sources/plugins/developing/datasources.md).
 
+This repository has been forked and build over the [Simple JSON Datasource](https://github.com/grafana/simple-json-datasource) plugin for Grafana.
+
 This also serves as a living example implementation of a datasource.
 
 Your backend needs to implement 4 urls:
