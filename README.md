@@ -191,7 +191,6 @@ The tag values api returns:
 ]
 ```
 
-For latest changelogs and contibutions please visit [here](https://github.com/MananArya22/kapacitor-grafana-datasource-plugin).
 
 
 ### Dev setup
