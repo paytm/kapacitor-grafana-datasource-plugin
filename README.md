@@ -2,9 +2,6 @@
 
 More documentation about datasource plugins can be found in the [Docs](https://github.com/grafana/grafana/blob/master/docs/sources/plugins/developing/datasources.md).
 
-This repository has been forked and build over the [Simple JSON Datasource](https://github.com/grafana/simple-json-datasource) plugin for Grafana. Thanks to the Simple JSON Datasource contributors.
-
-
 ### Kapacitor Datasource Setup
 
 1. Go to Configurations and select 'Data Sources'.

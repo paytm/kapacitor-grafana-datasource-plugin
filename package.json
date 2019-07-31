@@ -1,8 +1,7 @@
 {
-  "name": "grafana-simple-json",
-  "private": true,
-  "version": "1.0.0",
-  "description": "",
+  "name": "paytm-kapacitor-simplejson-datasource",
+  "version": "0.1.2",
+  "description": "This datasource provides the ability to use kapacitor as a datasource for viewing and filtering the list of alerts configured on kapacitor.",
   "main": "index.js",
   "scripts": {
     "build": "./node_modules/grunt-cli/bin/grunt",
@@ -10,12 +9,11 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/grafana/simple-json-datasource.git"
+    "url": "git+https://github.com/paytm/kapacitor-grafana-datasource-plugin.git"
   },
-  "author": "",
-  "license": "MIT",
+  "author": "Manan Arya, Paytm",
   "bugs": {
-    "url": "https://github.com/grafana/simple-json-datasource/issues"
+    "url": "https://github.com/paytm/kapacitor-grafana-datasource-plugin/issues"
   },
   "engineStrict": true,
   "devDependencies": {
@@ -42,5 +40,5 @@
   "dependencies": {
     "lodash": "^4.17.4"
   },
-  "homepage": "https://github.com/grafana/simple-json-datasource#readme"
+  "homepage": "https://github.com/paytm/kapacitor-grafana-datasource-plugin#readme"
 }
